@@ -75,7 +75,9 @@ export function scheduleScrapers({
  * @param {Array<string>} options.locations - Array of locations to scrape jobs for
  * @returns {Promise<Object>} - Results of the scraping operation
  */
-export async function runScrapersNow({ locations = ["United States"] } = {}) {
+export async function runScrapersNow({
+  locations = ["United Arab Emirates"],
+} = {}) {
   console.log(
     `Running all job scrapers immediately at ${new Date().toISOString()}`
   );
@@ -92,30 +94,30 @@ export async function runScrapersNow({ locations = ["United States"] } = {}) {
       console.log(`Scraping jobs for location: ${location}`);
 
       // Run LinkedIn scraper
-      try {
-        console.log(`Starting LinkedIn scraper for ${location}...`);
-        const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs({
-          location,
-          pages: 3, // Limited for immediate run
-        });
-        results.linkedin += linkedinCount;
-        console.log(
-          `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
-        );
-      } catch (error) {
-        console.error(`LinkedIn scraper error for ${location}:`, error);
-        results.errors.push(`LinkedIn - ${location}: ${error.message}`);
-      }
+      // try {
+      //   console.log(`Starting LinkedIn scraper for ${location}...`);
+      //   const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs({
+      //     location,
+      //     pages: 1, // Limited for immediate run
+      //   });
+      //   results.linkedin += linkedinCount;
+      //   console.log(
+      //     `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
+      //   );
+      // } catch (error) {
+      //   console.error(`LinkedIn scraper error for ${location}:`, error);
+      //   results.errors.push(`LinkedIn - ${location}: ${error.message}`);
+      // }
 
       // Wait a bit between scrapers to avoid being rate-limited
-      await new Promise((resolve) => setTimeout(resolve, 5000));
+      // await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Run Indeed scraper
       try {
         console.log(`Starting Indeed scraper for ${location}...`);
         const indeedCount = await indeedScraper.scrapeAndSaveIndeedJobs({
           location,
-          pages: 3, // Limited for immediate run
+          pages: 1, // Limited for immediate run
         });
         results.indeed += indeedCount;
         console.log(

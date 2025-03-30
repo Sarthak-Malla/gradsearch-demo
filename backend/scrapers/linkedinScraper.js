@@ -75,8 +75,6 @@ export async function scrapeLinkedInJobs({ location = "", pages = 3 } = {}) {
                   : "Remote/Unspecified",
                 url: linkElement.href,
                 source: "LinkedIn",
-                experienceLevel: "Entry Level",
-                postedDate: new Date(),
               });
             }
           } catch (error) {
@@ -88,21 +86,15 @@ export async function scrapeLinkedInJobs({ location = "", pages = 3 } = {}) {
       });
 
       console.log(`Found ${pageJobs.length} jobs on page ${currentPage + 1}`);
+
+      // Set the postedDate outside the evaluate function for each job
+      pageJobs.forEach((job) => {
+        job.postedDate = new Date(); // Set current date
+      });
+
       jobListings.push(...pageJobs);
 
-      // Click next page button if not on the last page
-      if (currentPage < pages - 1) {
-        const nextButton = await page.$(
-          ".artdeco-pagination__button--next:not(.artdeco-button--disabled)"
-        );
-        if (!nextButton) {
-          console.log("No more pages to scrape");
-          break;
-        }
-
-        await nextButton.click();
-        await page.waitForTimeout(3000); // Wait for the next page to load
-      }
+      // TODO: Scroll for more jobs
     }
 
     console.log(
@@ -135,7 +127,7 @@ export async function scrapeLinkedInJobDetails(url) {
 
     // Wait for job details to load
     await page
-      .waitForSelector(".job-view-layout", { timeout: 10000 })
+      .waitForSelector(".decorated-job-posting__details", { timeout: 10000 })
       .catch((e) => console.log("Selector timeout, proceeding anyway"));
 
     // Extract detailed job information
@@ -152,6 +144,7 @@ export async function scrapeLinkedInJobDetails(url) {
       );
       let jobType = "Other";
       let salary = "";
+      let experienceLevel = "Entry Level";
 
       criteriaElements.forEach((item) => {
         const label = item
@@ -168,6 +161,8 @@ export async function scrapeLinkedInJobDetails(url) {
           label?.includes("Compensation")
         ) {
           salary = value || "";
+        } else if (label?.includes("Experience level")) {
+          experienceLevel = value || "Entry Level";
         }
       });
 
@@ -183,6 +178,7 @@ export async function scrapeLinkedInJobDetails(url) {
         description,
         jobType,
         salary,
+        experienceLevel,
         skills,
       };
     });
@@ -217,20 +213,28 @@ export async function scrapeAndSaveLinkedInJobs(options = {}) {
         const existingJob = await Job.findOne({ url: job.url });
 
         if (!existingJob) {
-          // Get additional job details if needed
-          // Uncomment the following lines if you want to scrape detailed information
-          // This is commented out to avoid excessive requests during development
-          /*
+          // Ensure postedDate is a valid Date object
+          if (
+            !job.postedDate ||
+            !(job.postedDate instanceof Date) ||
+            isNaN(job.postedDate)
+          ) {
+            job.postedDate = new Date(); // Set to current date if invalid
+          }
+
+          // Get additional job details including description
+          console.log(
+            `Fetching details for job: ${job.title} at ${job.company}`
+          );
           const details = await scrapeLinkedInJobDetails(job.url);
           const enhancedJob = {
             ...job,
-            ...details
+            ...details,
           };
-          await Job.create(enhancedJob);
-          */
 
-          // For now, just save the basic job information
-          await Job.create(job);
+          // Save the enhanced job with description to the database
+          await Job.create(enhancedJob);
+          console.log(`Saved job with description: ${job.title}`);
           savedCount++;
         }
       } catch (error) {

@@ -150,14 +150,12 @@ export const getJobStats = async (req, res) => {
     const topLocations = await Job.aggregate([
       { $group: { _id: "$location", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
-      { $limit: 10 },
     ]);
 
     // Top companies
     const topCompanies = await Job.aggregate([
       { $group: { _id: "$company", count: { $sum: 1 } } },
       { $sort: { count: -1 } },
-      { $limit: 10 },
     ]);
 
     // Top skills (requires jobs with skills array)

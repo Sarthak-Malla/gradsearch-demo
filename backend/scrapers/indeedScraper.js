@@ -10,7 +10,7 @@ import Job from "../models/job.js";
  */
 export async function scrapeIndeedJobs({ location = "", pages = 3 } = {}) {
   const browser = await puppeteer.launch({
-    headless: "new",
+    headless: false,
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 
@@ -25,9 +25,9 @@ export async function scrapeIndeedJobs({ location = "", pages = 3 } = {}) {
     );
 
     // Search parameters - focus on entry-level positions
-    const searchUrl = `https://www.indeed.com/jobs?q=entry+level&l=${encodeURIComponent(
+    const searchUrl = `https://ae.indeed.com/jobs?q=entry+level&l=${encodeURIComponent(
       location
-    )}&explvl=entry_level`;
+    )}&vjk=d07be6185741a061`;
     console.log(`Navigating to ${searchUrl}`);
 
     await page.goto(searchUrl, {
@@ -37,7 +37,7 @@ export async function scrapeIndeedJobs({ location = "", pages = 3 } = {}) {
 
     // Wait for job listings to load
     await page
-      .waitForSelector(".jobsearch-ResultsList", { timeout: 10000 })
+      .waitForSelector("#mosaic-jobResults", { timeout: 10000 })
       .catch((e) => console.log("Selector timeout, proceeding anyway"));
 
     const jobListings = [];
@@ -50,12 +50,17 @@ export async function scrapeIndeedJobs({ location = "", pages = 3 } = {}) {
       const pageJobs = await page.evaluate(() => {
         const jobs = [];
         const listings = document.querySelectorAll(".job_seen_beacon");
+        console.log(`Found ${listings.length} job listings on this page`);
 
         listings.forEach((listing) => {
           try {
             const titleElement = listing.querySelector(".jobTitle span");
-            const companyElement = listing.querySelector(".companyName");
-            const locationElement = listing.querySelector(".companyLocation");
+            const companyElement = listing.querySelector(
+              "[data-testid='company-name']"
+            );
+            const locationElement = listing.querySelector(
+              "[data-testid='text-location']"
+            );
             const salaryElement = listing.querySelector(
               ".salary-snippet-container"
             );
@@ -254,20 +259,19 @@ export async function scrapeAndSaveIndeedJobs(options = {}) {
         });
 
         if (!existingJob) {
-          // Get additional job details if needed
-          // Uncomment the following lines if you want to scrape detailed information
-          // This is commented out to avoid excessive requests during development
-          /*
+          // Get additional job details including description
+          console.log(
+            `Fetching details for job: ${job.title} at ${job.company}`
+          );
           const details = await scrapeIndeedJobDetails(job.url);
           const enhancedJob = {
             ...job,
-            ...details
+            ...details,
           };
-          await Job.create(enhancedJob);
-          */
 
-          // For now, just save the basic job information
-          await Job.create(job);
+          // Save the enhanced job with description to the database
+          await Job.create(enhancedJob);
+          console.log(`Saved job with description: ${job.title}`);
           savedCount++;
         }
       } catch (error) {

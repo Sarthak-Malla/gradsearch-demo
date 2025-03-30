@@ -9,7 +9,7 @@ import scheduler from "../utils/scheduler.js";
  */
 export const runScrapersNow = async (req, res) => {
   try {
-    const { locations = ["United States"] } = req.body;
+    const { locations = ["United Arab Emirates"] } = req.body;
 
     // Start the scraping process asynchronously
     // We don't wait for it to complete before responding

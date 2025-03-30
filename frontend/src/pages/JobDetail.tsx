@@ -5,28 +5,14 @@ import {
   Paper,
   Typography,
   Button,
-  Chip,
-  Grid,
   Divider,
   CircularProgress,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Card,
-  CardContent,
+  Grid,
 } from "@mui/material";
-import {
-  Work as WorkIcon,
-  LinkedIn as LinkedInIcon,
-  Language as WebIcon,
-  LocationOn as LocationIcon,
-  AttachMoney as SalaryIcon,
-  Apartment as CompanyIcon,
-  CalendarToday as CalendarIcon,
-  ArrowBack as ArrowBackIcon,
-} from "@mui/icons-material";
+import { ArrowBack as ArrowBackIcon } from "@mui/icons-material";
 import Layout from "../components/Layout";
+import JobDetailHeader from "../components/jobs/JobDetailHeader";
+import JobSidebar from "../components/jobs/JobSidebar";
 import api, { Job } from "../services/api";
 
 const JobDetail: React.FC = () => {
@@ -55,18 +41,6 @@ const JobDetail: React.FC = () => {
 
     fetchJobDetails();
   }, [id]);
-
-  // Render source icon based on job source
-  const renderSourceIcon = (source: string) => {
-    switch (source) {
-      case "LinkedIn":
-        return <LinkedInIcon sx={{ color: "#0077B5" }} />;
-      case "Indeed":
-        return <WebIcon sx={{ color: "#2164f3" }} />;
-      default:
-        return <WebIcon />;
-    }
-  };
 
   if (loading) {
     return (
@@ -121,36 +95,7 @@ const JobDetail: React.FC = () => {
         {/* Main job details */}
         <Grid size={{ xs: 12, md: 8 }}>
           <Paper elevation={2} sx={{ p: 3, borderRadius: 2 }}>
-            <Box
-              display="flex"
-              justifyContent="space-between"
-              alignItems="flex-start"
-            >
-              <Box>
-                <Typography variant="h5" fontWeight="bold">
-                  {job.title}
-                </Typography>
-                <Typography variant="h6" color="textSecondary" gutterBottom>
-                  {job.company}
-                </Typography>
-              </Box>
-              <Chip
-                icon={renderSourceIcon(job.source)}
-                label={job.source}
-                color={
-                  job.source === "LinkedIn"
-                    ? "primary"
-                    : job.source === "Indeed"
-                    ? "secondary"
-                    : "default"
-                }
-              />
-            </Box>
-
-            <Box display="flex" gap={1} flexWrap="wrap" my={2}>
-              <Chip label={job.experienceLevel} color="primary" />
-              <Chip label={job.jobType || "Unspecified"} />
-            </Box>
+            <JobDetailHeader job={job} />
 
             <Divider sx={{ my: 3 }} />
 
@@ -188,77 +133,7 @@ const JobDetail: React.FC = () => {
 
         {/* Sidebar with additional information */}
         <Grid size={{ xs: 12, md: 4 }}>
-          <Card elevation={2} sx={{ borderRadius: 2, mb: 3 }}>
-            <CardContent>
-              <Typography variant="h6" gutterBottom>
-                Job Details
-              </Typography>
-              <List disablePadding>
-                <ListItem disableGutters>
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <CompanyIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText primary="Company" secondary={job.company} />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <LocationIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText primary="Location" secondary={job.location} />
-                </ListItem>
-                {job.salary && (
-                  <ListItem disableGutters>
-                    <ListItemIcon sx={{ minWidth: 40 }}>
-                      <SalaryIcon color="primary" />
-                    </ListItemIcon>
-                    <ListItemText primary="Salary" secondary={job.salary} />
-                  </ListItem>
-                )}
-                <ListItem disableGutters>
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <WorkIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Job Type"
-                    secondary={job.jobType || "Not specified"}
-                  />
-                </ListItem>
-                <ListItem disableGutters>
-                  <ListItemIcon sx={{ minWidth: 40 }}>
-                    <CalendarIcon color="primary" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary="Posted Date"
-                    secondary={
-                      job.postedDate
-                        ? new Date(job.postedDate).toLocaleDateString()
-                        : "Recently"
-                    }
-                  />
-                </ListItem>
-              </List>
-            </CardContent>
-          </Card>
-
-          {job.skills && job.skills.length > 0 && (
-            <Card elevation={2} sx={{ borderRadius: 2 }}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Required Skills
-                </Typography>
-                <Box display="flex" gap={1} flexWrap="wrap">
-                  {job.skills.map((skill, index) => (
-                    <Chip
-                      key={index}
-                      label={skill}
-                      variant="outlined"
-                      size="small"
-                    />
-                  ))}
-                </Box>
-              </CardContent>
-            </Card>
-          )}
+          <JobSidebar job={job} />
         </Grid>
       </Grid>
     </Layout>
