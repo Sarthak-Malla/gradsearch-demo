@@ -30,6 +30,35 @@ The Job Market Insights Dashboard provides real-time data on the job market for 
 - MongoDB (local or remote)
 - npm or yarn
 
+### MongoDB Setup
+
+1. Install MongoDB locally if you haven't already:
+
+   - **macOS** (using Homebrew):
+     ```
+     brew tap mongodb/brew
+     brew install mongodb-community
+     ```
+   - **Windows/Linux**: Download from [MongoDB website](https://www.mongodb.com/try/download/community)
+
+2. Start MongoDB service:
+
+   - **macOS**:
+     ```
+     brew services start mongodb-community
+     ```
+   - **Windows**: MongoDB should run as a service or you can start it manually
+   - **Linux**:
+     ```
+     sudo systemctl start mongod
+     ```
+
+3. Verify MongoDB is running:
+   ```
+   mongosh
+   ```
+   You should see the MongoDB shell connection prompt. Type `exit` to close the shell.
+
 ### Installation
 
 1. Clone the repository
@@ -57,7 +86,13 @@ The Job Market Insights Dashboard provides real-time data on the job market for 
 
 ### Running the Application
 
-1. Start MongoDB (if using local instance)
+1. Make sure MongoDB is running:
+
+   ```
+   brew services status mongodb-community  # For macOS
+   ```
+
+   If it's not running, start it with `brew services start mongodb-community`
 
 2. Start the backend server:
 
@@ -75,14 +110,41 @@ The Job Market Insights Dashboard provides real-time data on the job market for 
 
 4. Access the application at `http://localhost:3000`
 
-### Triggering Job Scraping
+### Populating the Database
 
-The application will automatically scrape job listings based on the cron schedule (default is 3 AM daily).
-To manually trigger the scraping process:
+Before you can view meaningful data in the dashboard, you need to populate the database with job listings:
 
-1. Navigate to the Dashboard
-2. Click on the "Update Data" button
-3. Wait for the scraping process to complete
+1. Make sure the backend server is running
+
+2. Use the provided API to trigger job scraping:
+
+   ```
+   curl -X POST http://localhost:5432/api/scrapers/run -H "Content-Type: application/json" -d '{"locations":["United Arab Emirates"]}'
+   ```
+
+   Alternatively, you can use the API in your browser by:
+
+   1. Navigate to the Dashboard
+   2. Open the browser console (F12)
+   3. Run this command:
+
+   ```javascript
+   fetch("http://localhost:5432/api/scrapers/run", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({ locations: ["United Arab Emirates"] }),
+   })
+     .then((res) => res.json())
+     .then((data) => console.log(data));
+   ```
+
+3. The scraping process will run in the background. This may take a few minutes depending on the number of jobs found.
+
+4. Once the scraping is complete, refresh the dashboard to see the populated data.
+
+## API Documentation
+
+Full API documentation can be found in the [API_DOCUMENTATION.md](./API_DOCUMENTATION.md) file, which details all available endpoints, request parameters, and response formats.
 
 ## Project Structure
 
@@ -100,6 +162,40 @@ To manually trigger the scraping process:
 - `src/components/`: Reusable UI components
 - `src/pages/`: Main application pages
 - `src/services/`: API service for backend communication
+
+## Troubleshooting
+
+### MongoDB Connection Issues
+
+If you encounter MongoDB connection issues:
+
+1. Make sure MongoDB is running:
+
+   ```
+   mongosh
+   ```
+
+2. Check if the MongoDB connection string in your `.env` file is correct:
+
+   ```
+   MONGODB_URI=mongodb://localhost:27017/job-market-insights
+   ```
+
+3. If using a custom port, update the connection string accordingly.
+
+### No Jobs Appearing in Dashboard
+
+1. Check if the scraping process was successful by checking the console output of the backend server
+2. Verify jobs exist in the database:
+   ```
+   mongosh
+   use job-market-insights
+   db.jobs.countDocuments()
+   ```
+3. Check if the backend API is responding correctly:
+   ```
+   curl http://localhost:5432/api/jobs
+   ```
 
 ## Evaluation Criteria
 
