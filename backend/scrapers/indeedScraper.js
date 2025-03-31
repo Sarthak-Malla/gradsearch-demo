@@ -10,7 +10,7 @@ import Job from "../models/job.js";
  */
 export async function scrapeIndeedJobs({ location = "", pages = 3 } = {}) {
   const browser = await puppeteer.launch({
-    headless: false,
+    headless: "new",
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 

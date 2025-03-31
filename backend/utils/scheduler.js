@@ -94,23 +94,23 @@ export async function runScrapersNow({
       console.log(`Scraping jobs for location: ${location}`);
 
       // Run LinkedIn scraper
-      // try {
-      //   console.log(`Starting LinkedIn scraper for ${location}...`);
-      //   const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs({
-      //     location,
-      //     pages: 1, // Limited for immediate run
-      //   });
-      //   results.linkedin += linkedinCount;
-      //   console.log(
-      //     `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
-      //   );
-      // } catch (error) {
-      //   console.error(`LinkedIn scraper error for ${location}:`, error);
-      //   results.errors.push(`LinkedIn - ${location}: ${error.message}`);
-      // }
+      try {
+        console.log(`Starting LinkedIn scraper for ${location}...`);
+        const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs({
+          location,
+          pages: 1, // Limited for immediate run
+        });
+        results.linkedin += linkedinCount;
+        console.log(
+          `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
+        );
+      } catch (error) {
+        console.error(`LinkedIn scraper error for ${location}:`, error);
+        results.errors.push(`LinkedIn - ${location}: ${error.message}`);
+      }
 
       // Wait a bit between scrapers to avoid being rate-limited
-      // await new Promise((resolve) => setTimeout(resolve, 5000));
+      await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Run Indeed scraper
       try {
