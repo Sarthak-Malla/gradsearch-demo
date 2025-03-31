@@ -6,6 +6,8 @@ import Dashboard from "./pages/Dashboard";
 import JobListings from "./pages/JobListings";
 import JobDetail from "./pages/JobDetail";
 import NotFound from "./pages/NotFound";
+import ChatbotContainer from "./components/chatbot/ChatbotContainer";
+import { ChatProvider } from "./context/ChatContext";
 import "./App.css";
 
 // Create a responsive theme
@@ -36,14 +38,18 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <Router>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/jobs" element={<JobListings />} />
-          <Route path="/jobs/:id" element={<JobDetail />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </Router>
+      <ChatProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/jobs" element={<JobListings />} />
+            <Route path="/jobs/:id" element={<JobDetail />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+          {/* Chatbot available on all pages */}
+          <ChatbotContainer />
+        </Router>
+      </ChatProvider>
     </ThemeProvider>
   );
 }
