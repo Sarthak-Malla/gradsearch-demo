@@ -12,4 +12,7 @@ router.get("/stats", jobController.getJobStats);
 // GET /api/jobs/:id - Get a single job by ID
 router.get("/:id", jobController.getJobById);
 
+// GET /api/jobs/semantic-search - Perform semantic search on jobs
+router.get("/semantic-search", jobController.getJobSemanticSearch);
+
 export default router;

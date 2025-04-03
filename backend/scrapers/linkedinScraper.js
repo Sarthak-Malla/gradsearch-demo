@@ -205,6 +205,7 @@ export async function scrapeLinkedInJobDetails(url) {
 export async function scrapeAndSaveLinkedInJobs(options = {}) {
   try {
     const jobs = await scrapeLinkedInJobs(options);
+    const jobsWithDetails = [];
     let savedCount = 0;
 
     for (const job of jobs) {
@@ -232,6 +233,8 @@ export async function scrapeAndSaveLinkedInJobs(options = {}) {
             ...details,
           };
 
+          jobsWithDetails.push(enhancedJob);
+
           // Save the enhanced job with description to the database
           await Job.create(enhancedJob);
           console.log(`Saved job with description: ${job.title}`);
@@ -243,7 +246,7 @@ export async function scrapeAndSaveLinkedInJobs(options = {}) {
     }
 
     console.log(`LinkedIn scraper completed. Saved ${savedCount} new jobs.`);
-    return savedCount;
+    return jobsWithDetails;
   } catch (error) {
     console.error("LinkedIn scraper error:", error);
     return 0;

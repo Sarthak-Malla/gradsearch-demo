@@ -1,4 +1,5 @@
 import Job from "../models/job.js";
+import chromaService from "../chroma/config.js";
 
 /**
  * Get all jobs with optional filtering
@@ -204,8 +205,89 @@ export const getJobStats = async (req, res) => {
   }
 };
 
+/**
+ * Get job search using ChromaDB
+ * @param {Object} req - Express request object
+ * @param {Object} req.query - Query parameters
+ * @param {string} [req.query.query] - Search query
+ * @param {number} [req.query.nResults=5] - Number of results to return
+ * @param {Object} res - Express response object
+ */
+export const getJobSemanticSearch = async (req, res) => {
+  try {
+    const { query, nResults = 5 } = req.query;
+
+    if (!query) {
+      return res.status(400).json({
+        success: false,
+        message: "Query parameter is required",
+      });
+    }
+
+    await chromaService.init();
+
+    // Perform search using ChromaDB
+    const chromaResults = await chromaService.searchJobs(
+      query,
+      parseInt(nResults)
+    );
+
+    // Extract URLs from the metadata
+    const urls = [];
+    if (
+      chromaResults &&
+      chromaResults.metadatas &&
+      chromaResults.metadatas.length > 0
+    ) {
+      for (const metadataArray of chromaResults.metadatas) {
+        for (const metadata of metadataArray) {
+          if (metadata.url) {
+            urls.push(metadata.url);
+          }
+        }
+      }
+    }
+
+    // If no URLs found, return the raw results
+    if (urls.length === 0) {
+      return res.status(200).json({
+        success: true,
+        message: "No matching jobs found in database",
+        data: chromaResults,
+      });
+    }
+
+    // Query MongoDB for jobs with matching URLs
+    const jobs = await Job.find({ url: { $in: urls } });
+
+    // Map the jobs to match the order of the semantic search results
+    const orderedJobs = urls
+      .map((url) => {
+        return jobs.find((job) => job.url === url) || null;
+      })
+      .filter(Boolean); // Remove any null values
+
+    res.status(200).json({
+      success: true,
+      count: orderedJobs.length,
+      data: {
+        jobs: orderedJobs,
+        chromaResults: chromaResults, // Include original results for reference
+      },
+    });
+  } catch (error) {
+    console.error("Error searching jobs:", error);
+    res.status(500).json({
+      success: false,
+      message: "Internal server error",
+      error: process.env.NODE_ENV === "development" ? error.message : undefined,
+    });
+  }
+};
+
 export default {
   getAllJobs,
   getJobById,
   getJobStats,
+  getJobSemanticSearch,
 };

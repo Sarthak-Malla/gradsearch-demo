@@ -247,6 +247,7 @@ export async function scrapeIndeedJobDetails(url) {
 export async function scrapeAndSaveIndeedJobs(options = {}) {
   try {
     const jobs = await scrapeIndeedJobs(options);
+    const jobsWithDetails = [];
     let savedCount = 0;
 
     for (const job of jobs) {
@@ -269,6 +270,8 @@ export async function scrapeAndSaveIndeedJobs(options = {}) {
             ...details,
           };
 
+          jobsWithDetails.push(enhancedJob);
+
           // Save the enhanced job with description to the database
           await Job.create(enhancedJob);
           console.log(`Saved job with description: ${job.title}`);
@@ -280,7 +283,7 @@ export async function scrapeAndSaveIndeedJobs(options = {}) {
     }
 
     console.log(`Indeed scraper completed. Saved ${savedCount} new jobs.`);
-    return savedCount;
+    return jobsWithDetails;
   } catch (error) {
     console.error("Indeed scraper error:", error);
     return 0;

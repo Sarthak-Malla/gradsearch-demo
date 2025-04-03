@@ -1,6 +1,35 @@
 import cron from "node-cron";
 import linkedinScraper from "../scrapers/linkedinScraper.js";
 import indeedScraper from "../scrapers/indeedScraper.js";
+import chromaService from "../chroma/config.js";
+
+/**
+ * Schedule job indexing in ChromaDB
+ * @param {Array<Object>} allJobs - Array of job objects to be indexed
+ * @returns {Promise<void>}
+ * @throws {Error} - If indexing fails
+ */
+export async function scheduleJobIndexing(allJobs) {
+  try {
+    if (!allJobs || allJobs.length === 0) {
+      console.log("No jobs to index in ChromaDB");
+      return;
+    }
+
+    await chromaService.init();
+    await chromaService.addJobs(allJobs);
+
+    console.log(
+      `Indexed ${
+        allJobs.length
+      } jobs. Total jobs in ChromaDB: ${await chromaService.getJobCount()}`
+    );
+    return true;
+  } catch (error) {
+    console.error("Failed to index jobs:", error);
+    throw error;
+  }
+}
 
 /**
  * Schedule job scrapers to run at specified intervals
@@ -24,21 +53,24 @@ export function scheduleScrapers({
     );
 
     try {
+      const allJobs = []; // Collect all jobs for ChromaDB indexing
+
       for (const location of locations) {
         console.log(`Scraping jobs for location: ${location}`);
 
         // Run LinkedIn scraper
         try {
           console.log(`Starting LinkedIn scraper for ${location}...`);
-          const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs(
-            {
-              location,
-              pages: 5, // Adjust as needed
-            }
-          );
+          const linkedinJobs = await linkedinScraper.scrapeAndSaveLinkedInJobs({
+            location,
+            pages: 5, // Adjust as needed
+          });
           console.log(
-            `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
+            `LinkedIn scraper completed for ${location}. Saved ${linkedinJobs.length} jobs.`
           );
+
+          // Add jobs to collection for ChromaDB
+          allJobs.push(...linkedinJobs);
         } catch (error) {
           console.error(`LinkedIn scraper error for ${location}:`, error);
         }
@@ -46,16 +78,33 @@ export function scheduleScrapers({
         // Run Indeed scraper
         try {
           console.log(`Starting Indeed scraper for ${location}...`);
-          const indeedCount = await indeedScraper.scrapeAndSaveIndeedJobs({
+          const indeedJobs = await indeedScraper.scrapeAndSaveIndeedJobs({
             location,
             pages: 5, // Adjust as needed
           });
           console.log(
-            `Indeed scraper completed for ${location}. Saved ${indeedCount} jobs.`
+            `Indeed scraper completed for ${location}. Saved ${indeedJobs.length} jobs.`
           );
+
+          // Add jobs to collection for ChromaDB
+          allJobs.push(...indeedJobs);
         } catch (error) {
           console.error(`Indeed scraper error for ${location}:`, error);
         }
+      }
+
+      // Index all collected jobs in ChromaDB
+      if (allJobs.length > 0) {
+        try {
+          await scheduleJobIndexing(allJobs);
+          console.log(
+            `Successfully indexed ${allJobs.length} jobs in ChromaDB`
+          );
+        } catch (error) {
+          console.error("Failed to index jobs in ChromaDB:", error);
+        }
+      } else {
+        console.log("No jobs were scraped to index in ChromaDB");
       }
 
       console.log(
@@ -89,21 +138,26 @@ export async function runScrapersNow({
     errors: [],
   };
 
+  const allJobs = []; // Initialize array to collect all jobs
+
   try {
     for (const location of locations) {
       console.log(`Scraping jobs for location: ${location}`);
 
       // Run LinkedIn scraper
+      let linkedinJobs = [];
       try {
         console.log(`Starting LinkedIn scraper for ${location}...`);
-        const linkedinCount = await linkedinScraper.scrapeAndSaveLinkedInJobs({
+        linkedinJobs = await linkedinScraper.scrapeAndSaveLinkedInJobs({
           location,
           pages: 1, // Limited for immediate run
         });
-        results.linkedin += linkedinCount;
+        results.linkedin += linkedinJobs.length;
         console.log(
-          `LinkedIn scraper completed for ${location}. Saved ${linkedinCount} jobs.`
+          `LinkedIn scraper completed for ${location}. Saved ${linkedinJobs.length} jobs.`
         );
+        // Add LinkedIn jobs to the collection
+        allJobs.push(...linkedinJobs);
       } catch (error) {
         console.error(`LinkedIn scraper error for ${location}:`, error);
         results.errors.push(`LinkedIn - ${location}: ${error.message}`);
@@ -113,16 +167,19 @@ export async function runScrapersNow({
       await new Promise((resolve) => setTimeout(resolve, 5000));
 
       // Run Indeed scraper
+      let indeedJobs = [];
       try {
         console.log(`Starting Indeed scraper for ${location}...`);
-        const indeedCount = await indeedScraper.scrapeAndSaveIndeedJobs({
+        indeedJobs = await indeedScraper.scrapeAndSaveIndeedJobs({
           location,
           pages: 1, // Limited for immediate run
         });
-        results.indeed += indeedCount;
+        results.indeed += indeedJobs.length;
         console.log(
-          `Indeed scraper completed for ${location}. Saved ${indeedCount} jobs.`
+          `Indeed scraper completed for ${location}. Saved ${indeedJobs.length} jobs.`
         );
+        // Add Indeed jobs to the collection
+        allJobs.push(...indeedJobs);
       } catch (error) {
         console.error(`Indeed scraper error for ${location}:`, error);
         results.errors.push(`Indeed - ${location}: ${error.message}`);
@@ -140,6 +197,26 @@ export async function runScrapersNow({
       );
     }
 
+    // Index all collected jobs to ChromaDB
+    if (allJobs.length > 0) {
+      try {
+        const success = await scheduleJobIndexing(allJobs);
+        if (success) {
+          console.log(
+            `Successfully indexed ${allJobs.length} jobs to ChromaDB`
+          );
+        } else {
+          console.error("Failed to index jobs to ChromaDB");
+          results.errors.push("Failed to index jobs to ChromaDB");
+        }
+      } catch (error) {
+        console.error("ChromaDB indexing error:", error);
+        results.errors.push(`ChromaDB error: ${error.message}`);
+      }
+    } else {
+      console.log("No jobs were scraped to index in ChromaDB");
+    }
+
     return results;
   } catch (error) {
     console.error("Error in job scraping:", error);
@@ -151,4 +228,5 @@ export async function runScrapersNow({
 export default {
   scheduleScrapers,
   runScrapersNow,
+  scheduleJobIndexing,
 };
