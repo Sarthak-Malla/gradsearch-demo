@@ -253,43 +253,46 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({
   const fetchJobRecommendations = async () => {
     setLoading(true);
     try {
-      // Prepare search parameters from preferences
-      const params: any = {
-        limit: 5,
-        experienceLevel: preferences.experienceLevel,
-      };
+      // Construct a search query from user preferences
+      let searchQuery = "";
 
-      // Only add non-empty preferences to the query
+      // Add skills to the query
+      if (preferences.skills.length > 0) {
+        searchQuery += preferences.skills.join(" ");
+      }
+
+      // Add experience level
+      if (preferences.experienceLevel) {
+        searchQuery += ` ${preferences.experienceLevel}`;
+      }
+
+      // Add job type if specified
+      if (preferences.jobType && preferences.jobType !== "Any type") {
+        searchQuery += ` ${preferences.jobType}`;
+      }
+
+      // Add location if specified and not general
       if (
         preferences.location &&
         preferences.location !== "Anywhere" &&
         preferences.location !== "Not important"
       ) {
-        params.location = preferences.location;
+        searchQuery += ` ${preferences.location}`;
       }
 
-      if (preferences.jobType && preferences.jobType !== "Any type") {
-        params.jobType = preferences.jobType;
-      }
-
-      // For skills, we'll use the search parameter which does a full text search
-      if (preferences.skills.length > 0) {
-        params.search = preferences.skills.join(" ");
-      }
-
-      // Fetch jobs with the constructed parameters
-      const response = await api.jobs.getAll(params);
-      setRecommendations(response.data);
+      // Perform semantic search using the API
+      const response = await api.jobs.semanticSearch(searchQuery, 5);
+      setRecommendations(response.data.jobs);
 
       // Add a message with the recommendations
       setTimeout(() => {
-        if (response.data.length > 0) {
+        if (response.data.jobs.length > 0) {
           addMessage({
             type: "bot",
-            text: `I found ${response.data.length} job${
-              response.data.length === 1 ? "" : "s"
+            text: `I found ${response.data.jobs.length} job${
+              response.data.jobs.length === 1 ? "" : "s"
             } that match your preferences:`,
-            jobs: response.data,
+            jobs: response.data.jobs,
           });
 
           // Ask if they want more recommendations

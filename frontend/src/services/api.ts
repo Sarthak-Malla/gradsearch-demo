@@ -34,6 +34,15 @@ export interface JobResponse {
   data: Job;
 }
 
+export interface SemanticSearchResponse {
+  success: boolean;
+  count: number;
+  data: {
+    jobs: Job[];
+    chromaResults: any;
+  };
+}
+
 export interface StatsResponse {
   success: boolean;
   data: {
@@ -93,6 +102,17 @@ const api = {
     // Get job statistics and insights
     getStats: async (): Promise<StatsResponse> => {
       const response = await axios.get(`${API_URL}/jobs/stats`);
+      return response.data;
+    },
+
+    // Semantic search for jobs
+    semanticSearch: async (
+      query: string,
+      nResults: number = 5
+    ): Promise<SemanticSearchResponse> => {
+      const response = await axios.get(`${API_URL}/jobs/semantic-search`, {
+        params: { query, nResults },
+      });
       return response.data;
     },
   },
