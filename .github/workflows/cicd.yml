@@ -55,7 +55,7 @@ jobs:
           echo "DB_PORT=${{ secrets.DB_PORT }}" > .env
           echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
           echo "NODE_ENV=production" >> .env
-          echo "CHROMA_HOST=chroma" >> .env 
+          echo "CHROMA_HOST=${{ secrets.CHROMA_HOST }}" >> .env 
           echo "CHROMA_PORT=8000" >> .env
           echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
 
@@ -69,7 +69,10 @@ jobs:
           docker run -d --name gradsearch-job-insights-backend \
             -p ${DB_PORT:-8080}:8080 \
             ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest \
-            --env-file ./backend/.env
+            -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
+            -e NODE_ENV=production \
+            -e CHROMA_HOST=${{ secrets.CHROMA_HOST }} \
+            -e CHROMA_PORT=8000
 
           docker run -d --name gradsearch-job-insights-frontend \
             -p 3000:80 \
