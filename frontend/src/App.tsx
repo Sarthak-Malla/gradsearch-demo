@@ -35,6 +35,10 @@ const theme = createTheme({
 });
 
 function App() {
+  React.useEffect(() => {
+    console.log("API URL:", process.env.REACT_APP_API_URL);
+  }, []);
+
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
