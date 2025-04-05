@@ -1,4 +1,4 @@
-FROM node:alpine3.21
+FROM node:alpine3.21 AS build
 WORKDIR /frontend
 COPY ./frontend/package.json ./
 RUN npm install
