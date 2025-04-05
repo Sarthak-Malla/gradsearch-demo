@@ -64,11 +64,20 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
           docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
-      - name: Deploy with Docker Compose
+      - name: Run Docker Containers
         run: |
-          # Use force-recreate to ensure clean deployment
-          docker-compose down --remove-orphans
-          docker-compose up -d --force-recreate
+          docker run -d --name gradsearch-job-insights-backend \
+            -p ${DB_PORT:-8080}:8080 \
+            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest \
+            --env-file ./backend/.env
+
+          docker run -d --name gradsearch-job-insights-frontend \
+            -p 3000:80 \
+            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
+
+          docker run -d --name chroma-server \
+            -p 8000:8000 \
+            chromadb/chroma
 
       - name: Cleanup
         run: |
