@@ -1,8 +1,8 @@
 FROM node:alpine3.21 AS build
 WORKDIR /frontend
-COPY ./frontend/package.json ./
+COPY ./frontend/package*.json ./
 RUN npm install
-COPY . .
+COPY ./frontend .
 RUN npm run build
 
 # serve the app
