@@ -7,7 +7,7 @@ This document provides comprehensive information about the API endpoints availab
 All API endpoints are prefixed with:
 
 ```
-http://localhost:5432/api
+http://localhost:8080/api
 ```
 
 ## Authentication
@@ -260,7 +260,7 @@ import axios from "axios";
 // Fetch all entry-level software engineering jobs
 const fetchJobs = async () => {
   try {
-    const response = await axios.get("http://localhost:5432/api/jobs", {
+    const response = await axios.get("http://localhost:8080/api/jobs", {
       params: {
         search: "software engineer",
         experienceLevel: "Entry Level",
@@ -280,7 +280,7 @@ const fetchJobs = async () => {
 const triggerScraping = async () => {
   try {
     const response = await axios.post(
-      "http://localhost:5432/api/scrapers/run",
+      "http://localhost:8080/api/scrapers/run",
       {
         locations: ["United Arab Emirates"],
       }
@@ -296,7 +296,7 @@ const triggerScraping = async () => {
 ### Fetching Job Stats with Fetch API (JavaScript)
 
 ```javascript
-fetch("http://localhost:5432/api/jobs/stats")
+fetch("http://localhost:8080/api/jobs/stats")
   .then((response) => response.json())
   .then((data) => {
     if (data.success) {

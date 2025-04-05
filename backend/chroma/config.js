@@ -3,7 +3,7 @@ import { ChromaClient } from "chromadb";
 class ChromaService {
   constructor() {
     this.client = new ChromaClient({
-      path: "http://localhost:8000",
+      path: `http://${process.env.CHROMA_HOST}:${process.env.CHROMA_PORT}`,
     });
     this.jobsCollection = null;
     this.collectionName = "jobs-collection";

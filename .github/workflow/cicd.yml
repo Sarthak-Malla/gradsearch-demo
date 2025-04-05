@@ -1,0 +1,82 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Backend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./backend/DockerFile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
+          build-args: |
+            DB_PORT=${{ secrets.DB_PORT }}
+            MONGODB_URI=${{ secrets.MONGODB_URI }}
+            NODE_ENV=production
+            CHROMA_HOST=chroma
+            CHROMA_PORT=8000
+
+      - name: Build and Push Frontend Image
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          file: ./frontend/DockerFile
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
+          build-args: |
+            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+
+  deploy:
+    needs: build-and-push
+    runs-on: self-hosted
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v4
+
+      - name: Clean up existing containers
+        run: |
+          docker stop gradsearch-job-insights-backend gradsearch-job-insights-frontend chroma-server || true
+          docker rm gradsearch-job-insights-backend gradsearch-job-insights-frontend chroma-server || true
+          docker image prune -f
+
+      - name: Create .env file for Docker Compose
+        run: |
+          echo "DB_PORT=${{ secrets.DB_PORT }}" > .env
+          echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
+          echo "NODE_ENV=production" >> .env
+          echo "CHROMA_HOST=chroma" >> .env 
+          echo "CHROMA_PORT=8000" >> .env
+
+      - name: Pull Docker Images
+        run: |
+          docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
+          docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
+
+      - name: Deploy with Docker Compose
+        run: |
+          # Use force-recreate to ensure clean deployment
+          docker-compose down --remove-orphans
+          docker-compose up -d --force-recreate
+
+      - name: Cleanup
+        run: |
+          # Remove unused images, containers, networks, and volumes
+          docker system prune -f
+          # Remove old images to prevent disk space issues
+          docker image prune -a -f --filter "until=24h"

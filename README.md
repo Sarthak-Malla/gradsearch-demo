@@ -119,7 +119,7 @@ Before you can view meaningful data in the dashboard, you need to populate the d
 2. Use the provided API to trigger job scraping:
 
    ```
-   curl -X POST http://localhost:5432/api/scrapers/run -H "Content-Type: application/json" -d '{"locations":["United Arab Emirates"]}'
+   curl -X POST http://localhost:8080/api/scrapers/run -H "Content-Type: application/json" -d '{"locations":["United Arab Emirates"]}'
    ```
 
    Alternatively, you can use the API in your browser by:
@@ -129,7 +129,7 @@ Before you can view meaningful data in the dashboard, you need to populate the d
    3. Run this command:
 
    ```javascript
-   fetch("http://localhost:5432/api/scrapers/run", {
+   fetch("http://localhost:8080/api/scrapers/run", {
      method: "POST",
      headers: { "Content-Type": "application/json" },
      body: JSON.stringify({ locations: ["United Arab Emirates"] }),
@@ -194,7 +194,7 @@ If you encounter MongoDB connection issues:
    ```
 3. Check if the backend API is responding correctly:
    ```
-   curl http://localhost:5432/api/jobs
+   curl http://localhost:8080/api/jobs
    ```
 
 ## Evaluation Criteria
