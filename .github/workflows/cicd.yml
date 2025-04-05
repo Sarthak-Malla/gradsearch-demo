@@ -32,18 +32,10 @@ jobs:
             CHROMA_HOST=chroma
             CHROMA_PORT=8000
 
-      - name: Debug build args
-        run: echo "Building with REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}"
-
-      - name: Build and Push Frontend Image
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          file: ./frontend/DockerFile
-          push: true
-          tags: ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
-          build-args: |
-            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+      - name: Build Frontend Image
+        run: docker build -t ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} -f ./frontend/DockerFile .
+      - name: Push Frontend Image
+        run: docker push ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
   deploy:
     needs: build-and-push
