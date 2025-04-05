@@ -44,8 +44,6 @@ jobs:
           tags: ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
           build-args: |
             REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
-          cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:buildcache
-          cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:buildcache,mode=max
 
   deploy:
     needs: build-and-push
@@ -67,6 +65,7 @@ jobs:
           echo "NODE_ENV=production" >> .env
           echo "CHROMA_HOST=chroma" >> .env 
           echo "CHROMA_PORT=8000" >> .env
+          echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
 
       - name: Pull Docker Images
         run: |

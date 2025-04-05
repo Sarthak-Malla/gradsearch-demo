@@ -1,6 +1,7 @@
 import axios from "axios";
 
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:8080/api";
+console.log("env API_URL", process.env.REACT_APP_API_URL);
 
 // Job types and interfaces
 export interface Job {

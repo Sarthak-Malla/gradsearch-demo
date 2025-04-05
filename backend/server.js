@@ -9,9 +9,6 @@ import { fileURLToPath } from "url";
 import jobRoutes from "./routes/jobs.js";
 import scraperRoutes from "./routes/scrapers.js";
 
-// Import scheduler
-import scheduler from "./utils/scheduler.js";
-
 // Configure environment variables
 dotenv.config();
 
@@ -23,10 +20,6 @@ const PORT = process.env.DB_PORT || 8080;
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-// Define __dirname in ES module scope
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 // MongoDB connection string - now using local MongoDB
 const MONGODB_URI =
