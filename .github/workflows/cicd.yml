@@ -66,21 +66,11 @@ jobs:
 
       - name: Run Docker Containers
         run: |
-          docker run -d --name gradsearch-job-insights-backend \
-            -p ${DB_PORT:-8080}:8080 \
-            -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
-            -e NODE_ENV=production \
-            -e CHROMA_HOST=${{ secrets.CHROMA_HOST }} \
-            -e CHROMA_PORT=8000 \
-            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
+          docker run -d --name gradsearch-job-insights-backend -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NODE_ENV=production -e CHROMA_HOST="${{ secrets.CHROMA_HOST }}" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
 
-          docker run -d --name gradsearch-job-insights-frontend \
-            -p 3000:80 \
-            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
+          docker run -d --name gradsearch-job-insights-frontend -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
-          docker run -d --name chroma-server \
-            -p 8000:8000 \
-            chromadb/chroma
+          docker run -d --name chroma-server -p 8000:8000 chromadb/chroma
 
       - name: Cleanup
         run: |
