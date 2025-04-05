@@ -68,11 +68,11 @@ jobs:
         run: |
           docker run -d --name gradsearch-job-insights-backend \
             -p ${DB_PORT:-8080}:8080 \
-            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest \
             -e MONGODB_URI=${{ secrets.MONGODB_URI }} \
             -e NODE_ENV=production \
             -e CHROMA_HOST=${{ secrets.CHROMA_HOST }} \
             -e CHROMA_PORT=8000
+            ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest \
 
           docker run -d --name gradsearch-job-insights-frontend \
             -p 3000:80 \
