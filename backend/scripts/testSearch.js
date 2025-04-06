@@ -1,4 +1,8 @@
 import chromaService from "../chroma/config.js";
+import dotenv from "dotenv";
+
+// Load environment variables
+dotenv.config();
 
 async function testSearch() {
   try {
