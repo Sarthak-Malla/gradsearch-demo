@@ -36,7 +36,7 @@ class ChromaService {
       // Initialize the OpenAI embedding function
       this.embedder = new OpenAIEmbeddingFunction({
         apiKey: OPENAI_API_KEY,
-        model: "text-embedding-3-small", // You can use other models like "text-embedding-ada-002" for bigger
+        model: "text-embedding-ada-002",
       });
 
       if (!this.client) {
