@@ -63,7 +63,7 @@ jobs:
           echo "DB_PORT=${{ secrets.DB_PORT }}" > .env
           echo "MONGODB_URI=${{ secrets.MONGODB_URI }}" >> .env
           echo "NODE_ENV=production" >> .env
-          echo "CHROMA_HOST=${{ secrets.CHROMA_HOST }}" >> .env 
+          echo "CHROMA_HOST=chroma-server" >> .env 
           echo "CHROMA_PORT=8000" >> .env
           echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
 
@@ -77,7 +77,8 @@ jobs:
 
       - name: Run Docker Containers
         run: |
-          docker run -d --name chroma-server --network gradsearch-network -p 127.0.0.1:8000:8000 -v /tmp/chromadb:/chroma/chroma chromadb/chroma:latest
+          docker volume create chroma-data
+          docker run -d --name chroma-server --network gradsearch-network -p 127.0.0.1:8000:8000 -v chroma-data:/chroma/chroma chromadb/chroma:latest
 
           docker run -d --name gradsearch-job-insights-backend --network gradsearch-network -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NODE_ENV=production -e CHROMA_HOST="chroma-server" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
 

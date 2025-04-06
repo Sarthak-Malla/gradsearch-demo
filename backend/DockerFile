@@ -2,7 +2,10 @@ FROM node:alpine3.21
 WORKDIR /backend
 COPY ./backend/package*.json ./
 RUN npm install
-RUN npm install chromadb-default-embed
+# Install the embedding package globally to ensure it's properly accessible
+RUN npm install -g chromadb-default-embed
+# Also install locally in case it needs to be in the project's node_modules
+RUN npm install --save chromadb-default-embed
 COPY ./backend .
 EXPOSE 8080
 CMD ["npm", "run", "start"]
