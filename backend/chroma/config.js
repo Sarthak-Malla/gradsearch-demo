@@ -1,4 +1,5 @@
-import { ChromaClient, OpenAIEmbeddingFunction } from "chromadb";
+import { ChromaClient } from "chromadb";
+import OpenAI from "openai";
 
 class ChromaService {
   constructor() {
@@ -33,11 +34,17 @@ class ChromaService {
         process.exit(1);
       }
 
-      // Initialize the OpenAI embedding function
-      this.embedder = new OpenAIEmbeddingFunction({
-        apiKey: OPENAI_API_KEY,
-        model: "text-embedding-ada-002",
-      });
+      // Create a custom embedding function
+      const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+      this.embedder = {
+        generate: async function (texts) {
+          const response = await openai.embeddings.create({
+            model: "text-embedding-3-small",
+            input: texts,
+          });
+          return response.data.map((item) => item.embedding);
+        },
+      };
 
       if (!this.client) {
         this.client = new ChromaClient({
