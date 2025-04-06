@@ -83,6 +83,14 @@ jobs:
 
           docker run -d --name gradsearch-job-insights-frontend --network gradsearch-network -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
+      # - name: Add Node and Populate Chromadb
+      #   run: |
+      #     sudo apt install nodejs
+      #     sudo apt install npm
+      #     cd ./backend
+      #     npm install
+      #     node ./scripts/populateChroma.js
+
       - name: Cleanup
         run: |
           # Remove unused images, containers, networks, and volumes

@@ -2,6 +2,7 @@ FROM node:alpine3.21
 WORKDIR /backend
 COPY ./backend/package*.json ./
 RUN npm install
+RUN npm install chromadb-default-embed
 COPY ./backend .
 EXPOSE 8080
 CMD ["npm", "run", "start"]

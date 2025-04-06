@@ -16,9 +16,9 @@ async function populateChroma() {
     await chromaService.init();
     console.log("Initialized ChromaDB");
 
-    // Get all jobs from MongoDB
-    const jobs = await Job.find({});
-    console.log(`Found ${jobs.length} jobs in MongoDB`);
+    // Get only 120 jobs from MongoDB
+    const jobs = await Job.find({}).limit(120);
+    console.log(`Found ${jobs.length} jobs in MongoDB (limited to 120)`);
 
     // Add jobs to ChromaDB
     await chromaService.addJobs(jobs);
