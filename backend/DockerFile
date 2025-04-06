@@ -1,7 +1,6 @@
 FROM node:alpine3.21
 WORKDIR /backend
 COPY ./backend/package*.json ./
-RUN npm install --save chromadb-default-embed
 RUN npm install
 COPY ./backend .
 EXPOSE 8080

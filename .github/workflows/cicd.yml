@@ -31,6 +31,7 @@ jobs:
             NODE_ENV=production
             CHROMA_HOST="chroma-server"
             CHROMA_PORT=8000
+            OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
 
       - name: Build Frontend Image
         run: docker build -t ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} -f ./frontend/DockerFile .
@@ -65,6 +66,7 @@ jobs:
           echo "NODE_ENV=production" >> .env
           echo "CHROMA_HOST=chroma-server" >> .env 
           echo "CHROMA_PORT=8000" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
           echo "REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}" >> .env
 
       - name: Pull Docker Images
@@ -81,7 +83,7 @@ jobs:
           docker volume create chroma-data
           docker run -d --name chroma-server --network gradsearch-network -p 8000:8000 -v chroma-data:/chroma/chroma chromadb/chroma
 
-          docker run -d --name gradsearch-job-insights-backend --network gradsearch-network -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NODE_ENV=production -e CHROMA_HOST="chroma-server" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
+          docker run -d --name gradsearch-job-insights-backend --network gradsearch-network -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" -e NODE_ENV=production -e CHROMA_HOST="chroma-server" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
 
           docker run -d --name gradsearch-job-insights-frontend --network gradsearch-network -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 

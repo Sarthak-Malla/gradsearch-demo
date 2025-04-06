@@ -1,4 +1,4 @@
-import { ChromaClient } from "chromadb";
+import { ChromaClient, OpenAIEmbeddingFunction } from "chromadb";
 
 class ChromaService {
   constructor() {
@@ -6,6 +6,7 @@ class ChromaService {
     this.client = null;
     this.jobsCollection = null;
     this.collectionName = "jobs-collection";
+    this.embedder = null;
   }
 
   static getInstance() {
@@ -24,6 +25,20 @@ class ChromaService {
         "and port:",
         process.env.CHROMA_PORT
       );
+      const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+      if (!OPENAI_API_KEY) {
+        console.error(
+          "OpenAI API key is required but not found in environment variables"
+        );
+        process.exit(1);
+      }
+
+      // Initialize the OpenAI embedding function
+      this.embedder = new OpenAIEmbeddingFunction({
+        apiKey: OPENAI_API_KEY,
+        model: "text-embedding-3-small", // You can use other models like "text-embedding-ada-002" for bigger
+      });
+
       if (!this.client) {
         this.client = new ChromaClient({
           path: `http://${process.env.CHROMA_HOST}:${process.env.CHROMA_PORT}`,
@@ -57,11 +72,13 @@ class ChromaService {
       if (collectionExists) {
         this.jobsCollection = await this.client.getCollection({
           name: this.collectionName,
+          embeddingFunction: this.embedder,
         });
         console.log(`Connected to existing collection: ${this.collectionName}`);
       } else {
         this.jobsCollection = await this.client.createCollection({
           name: this.collectionName,
+          embeddingFunction: this.embedder,
         });
         console.log(`Created new collection: ${this.collectionName}`);
       }
