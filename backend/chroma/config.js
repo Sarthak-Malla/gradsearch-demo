@@ -18,6 +18,12 @@ class ChromaService {
   async init() {
     try {
       // Initialize client here, after env vars are loaded
+      console.log(
+        "Initializing ChromaDB client with host:",
+        process.env.CHROMA_HOST,
+        "and port:",
+        process.env.CHROMA_PORT
+      );
       if (!this.client) {
         this.client = new ChromaClient({
           path: `http://${process.env.CHROMA_HOST}:${process.env.CHROMA_PORT}`,
