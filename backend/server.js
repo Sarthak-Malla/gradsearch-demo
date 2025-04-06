@@ -1,16 +1,14 @@
 import express from "express";
+import dotenv from "dotenv";
+// Configure environment variables
+dotenv.config();
+
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
 
 // Import routes
 import jobRoutes from "./routes/jobs.js";
 import scraperRoutes from "./routes/scrapers.js";
-
-// Configure environment variables
-dotenv.config();
 
 // Initialize express app
 const app = express();

@@ -2,9 +2,8 @@ import { ChromaClient } from "chromadb";
 
 class ChromaService {
   constructor() {
-    this.client = new ChromaClient({
-      path: `http://${process.env.CHROMA_HOST}:${process.env.CHROMA_PORT}`,
-    });
+    // Don't create client in constructor, for env initialization
+    this.client = null;
     this.jobsCollection = null;
     this.collectionName = "jobs-collection";
   }
@@ -18,6 +17,13 @@ class ChromaService {
 
   async init() {
     try {
+      // Initialize client here, after env vars are loaded
+      if (!this.client) {
+        this.client = new ChromaClient({
+          path: `http://${process.env.CHROMA_HOST}:${process.env.CHROMA_PORT}`,
+        });
+      }
+
       // Check if collection exists, otherwise create it
       const collections = await this.client.listCollections();
       // Fix: Check if collections is an array of strings or objects

@@ -23,7 +23,6 @@ const Dashboard: React.FC = () => {
       try {
         setLoading(true);
         // Fetch dashboard statistics
-        console.log("API URL:", process.env.REACT_APP_API_URL);
         const response = await api.jobs.getStats();
         setStats(response.data);
       } catch (err) {

@@ -29,7 +29,7 @@ jobs:
             DB_PORT=${{ secrets.DB_PORT }}
             MONGODB_URI=${{ secrets.MONGODB_URI }}
             NODE_ENV=production
-            CHROMA_HOST=chroma
+            CHROMA_HOST="chroma-server"
             CHROMA_PORT=8000
 
       - name: Build Frontend Image
@@ -64,13 +64,16 @@ jobs:
           docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
           docker pull ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
+      - name: Create Docker Network
+        run: docker network create gradsearch-network || true
+
       - name: Run Docker Containers
         run: |
-          docker run -d --name gradsearch-job-insights-backend -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NODE_ENV=production -e CHROMA_HOST="${{ secrets.CHROMA_HOST }}" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
+          docker run -d --name chroma-server --network gradsearch-network -p 127.0.0.1:8000:8000 chromadb/chroma:latest
 
-          docker run -d --name gradsearch-job-insights-frontend -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
+          docker run -d --name gradsearch-job-insights-backend --network gradsearch-network -p ${DB_PORT:-8080}:8080 -e MONGODB_URI="${{ secrets.MONGODB_URI }}" -e NODE_ENV=production -e CHROMA_HOST="chroma-server" -e CHROMA_PORT=8000 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-backend:latest
 
-          docker run -d --name chroma-server -p 8000:8000 chromadb/chroma
+          docker run -d --name gradsearch-job-insights-frontend --network gradsearch-network -p 3000:80 ${{ secrets.DOCKER_USERNAME }}/gradsearch-job-insights-frontend:latest
 
       - name: Cleanup
         run: |
