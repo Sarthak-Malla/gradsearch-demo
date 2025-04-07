@@ -1,5 +1,6 @@
 import React, { forwardRef } from "react";
-import { Box, Typography, Chip, Button, Paper, Link } from "@mui/material";
+import { Box, Typography, Chip, Button, Paper } from "@mui/material";
+import { Link } from "react-router-dom";
 import { SmartToy as BotIcon, Person as UserIcon } from "@mui/icons-material";
 import { useChat } from "../../context/ChatContext";
 import { Job } from "../../services/api";
@@ -40,7 +41,7 @@ const JobRecommendation: React.FC<JobRecommendationProps> = ({ job }) => {
       </Box>
       <Button
         component={Link}
-        href={`/jobs/${job._id}`}
+        to={`/jobs/${job._id}`}
         variant="outlined"
         size="small"
         fullWidth
